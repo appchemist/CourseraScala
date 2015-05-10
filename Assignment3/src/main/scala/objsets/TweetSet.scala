@@ -34,6 +34,7 @@ class Tweet(val user: String, val text: String, val retweets: Int) {
  * [1] http://en.wikipedia.org/wiki/Binary_search_tree
  */
 abstract class TweetSet {
+   val isEmpty: Boolean
 
   /**
    * This method takes a predicate and returns a subset of all the elements
@@ -78,10 +79,9 @@ abstract class TweetSet {
    * and be implemented in the subclasses?
    */
   def descendingByRetweet: TweetList = {
-    val mostRet = this.mostRetweeted 
-    if (mostRet == null) return Nil
-    
-    return new Cons(mostRet, this.remove(mostRet).descendingByRetweet)
+    if (isEmpty) return Nil
+    val mostRet = mostRetweeted
+    return new Cons(mostRet, remove(mostRet).descendingByRetweet)
   }
 
 
@@ -114,12 +114,13 @@ abstract class TweetSet {
 }
 
 class Empty extends TweetSet {
+  val isEmpty = true
 
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = acc
   
   def union(that: TweetSet): TweetSet = that
   
-  def mostRetweeted: Tweet = return null
+  def mostRetweeted: Tweet = throw new NoSuchElementException("Empty")
 
   /**
    * The following methods are already implemented
@@ -135,16 +136,19 @@ class Empty extends TweetSet {
 }
 
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
-
+  val isEmpty = false
+  
   def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = if (p(elem)) right.filterAcc(p, left.filterAcc(p, acc.incl(elem))) else right.filterAcc(p, left.filterAcc(p, acc))
   
   def union(that: TweetSet): TweetSet = right.union(left.union(that.incl(elem)))
   
+  def max(left: Tweet, right: Tweet): Tweet = if (left.retweets >= right.retweets) left else right
+
   def mostRetweeted: Tweet = {
-    var mostOne = elem
-    def f(t: Tweet): Unit = if (t == null) return else if (t.retweets > mostOne.retweets) mostOne = t
-    foreach(f)
-    return mostOne
+    if (left.isEmpty && right.isEmpty) elem
+    else if (left.isEmpty) max(elem, right.mostRetweeted)
+    else if (right.isEmpty) max(elem, left.mostRetweeted)
+    else max(elem, max(left.mostRetweeted, right.mostRetweeted))
   }
   /**
    * The following methods are already implemented
