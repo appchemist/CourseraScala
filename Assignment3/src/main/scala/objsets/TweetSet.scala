@@ -79,9 +79,11 @@ abstract class TweetSet {
    * and be implemented in the subclasses?
    */
   def descendingByRetweet: TweetList = {
-    if (isEmpty) return Nil
-    val mostRet = mostRetweeted
-    return new Cons(mostRet, remove(mostRet).descendingByRetweet)
+    if (isEmpty) Nil
+    else {
+      val mostRet = mostRetweeted
+      new Cons(mostRet, remove(mostRet).descendingByRetweet)
+    }
   }
 
   /**
