@@ -97,7 +97,13 @@ object Anagrams {
    *  Note that the order of the occurrence list subsets does not matter -- the subsets
    *  in the example above could have been displayed in some other order.
    */
-  def combinations(occurrences: Occurrences): List[Occurrences] = ???
+  def combinations(occurrences: Occurrences): List[Occurrences] = {
+    def makeFullPath(acc: Occurrences, value: (Char, Int)): Occurrences = {
+      if (value._2 == 0) acc
+      else makeFullPath((value._1, value._2) :: acc, (value._1, value._2 - 1))
+    }
+    occurrences.foldLeft(Nil:Occurrences)(makeFullPath).toSet.subsets().map(_.toList).toList.filter((l: List[(Char, Int)]) => l.groupBy(_._1).forall(_._2.length < 2))
+  }
 
   /** Subtracts occurrence list `y` from occurrence list `x`.
    * 
